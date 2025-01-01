@@ -23,35 +23,13 @@ print(df.isnull().sum())
 df = df.dropna()  # ou df.fillna(méthode='ffill') pour remplir les valeurs manquantes
 
 # Étape 2: Encodage des variables catégorielles
-label_encoder_proto = LabelEncoder()
-label_encoder_service = LabelEncoder()
-label_encoder_state = LabelEncoder()
-label_encoder_attack_cat = LabelEncoder()  # Ajout de l'encodeur pour attack_cat
+label_encoder = LabelEncoder()
 
 # Encoder les variables catégorielles
-df['proto'] = label_encoder_proto.fit_transform(df['proto'])
-df['service'] = label_encoder_service.fit_transform(df['service'])
-df['state'] = label_encoder_state.fit_transform(df['state'])
-df['attack_cat'] = label_encoder_attack_cat.fit_transform(df['attack_cat'])  # Encoder attack_cat
-
-# Vérifier les classes uniques dans les label encoders
-print("Classes uniques pour 'proto':", label_encoder_proto.classes_)
-print("Classes uniques pour 'service':", label_encoder_service.classes_)
-print("Classes uniques pour 'state':", label_encoder_state.classes_)
-print("Classes uniques pour 'attack_cat':", label_encoder_attack_cat.classes_)  # Afficher les classes uniques pour attack_cat
-
-# Sauvegarder les label encoders pour chaque colonne catégorielle
-with open('label_encoder_proto.pkl', 'wb') as file:
-    pickle.dump(label_encoder_proto, file)
-
-with open('label_encoder_service.pkl', 'wb') as file:
-    pickle.dump(label_encoder_service, file)
-
-with open('label_encoder_state.pkl', 'wb') as file:
-    pickle.dump(label_encoder_state, file)
-
-with open('label_encoder_attack_cat.pkl', 'wb') as file:  # Sauvegarder l'encodeur pour attack_cat
-    pickle.dump(label_encoder_attack_cat, file)
+df['proto'] = label_encoder.fit_transform(df['proto'])
+df['service'] = label_encoder.fit_transform(df['service'])
+df['state'] = label_encoder.fit_transform(df['state'])
+df['attack_cat'] = label_encoder.fit_transform(df['attack_cat'])
 
 # Vérifier les transformations
 print(df[['proto', 'service', 'state', 'attack_cat']].head())
@@ -94,7 +72,7 @@ print(classification_report(y_test, y_pred))
 
 # Afficher la matrice de confusion
 cm = confusion_matrix(y_test, y_pred)
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=label_encoder_proto.classes_, yticklabels=label_encoder_proto.classes_)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=label_encoder.classes_, yticklabels=label_encoder.classes_)
 plt.xlabel('Predicted')
 plt.ylabel('True')
 plt.title('Confusion Matrix')
@@ -105,3 +83,14 @@ plt.barh(X.columns, model.feature_importances_)
 plt.xlabel('Feature Importance')
 plt.title('Feature Importance from XGBoost')
 plt.show()
+
+# Pour charger le modèle et le scaler plus tard :
+# Charger le modèle
+with open('xgboost_model.pkl', 'rb') as file:
+    loaded_model = pickle.load(file)
+
+# Charger le scaler
+with open('scaler.pkl', 'rb') as file:
+    loaded_scaler = pickle.load(file)
+
+# Tu peux maintenant utiliser `loaded_model` pour faire des prédictions
