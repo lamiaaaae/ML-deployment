@@ -32,9 +32,9 @@ with open('label_encoder_attack_cat.pkl', 'rb') as file:
 def home():
     return render_template('home.html')
 
-# Route pour effectuer une prédiction
-@app.route('/predict', methods=['POST'])
-def predict():
+# Route pour effectuer une prédiction via une API (JSON)
+@app.route('/predict_api', methods=['POST'])
+def predict_api():
     try:
         # Récupérer les données envoyées par l'utilisateur via une requête POST
         data = request.get_json()
@@ -52,9 +52,6 @@ def predict():
                 input_data['state'] = label_encoder_state.transform(input_data['state'])
                 input_data['attack_cat'] = label_encoder_attack_cat.transform(input_data['attack_cat'])  # Encoder attack_cat
 
-                # Vérifiez le nombre de colonnes
-                print(f"Nombre de colonnes dans input_data : {input_data.shape[1]}")  # Affiche le nombre de colonnes
-
                 # Appliquer la normalisation sur les données d'entrée
                 input_scaled = scaler.transform(input_data)
 
@@ -70,6 +67,46 @@ def predict():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# Route pour faire une prédiction à partir d'un formulaire HTML
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        # Récupérer les données saisies par l'utilisateur depuis le formulaire HTML
+        data = request.form.to_dict()
+
+        # Créer un DataFrame avec les données saisies
+        input_data = pd.DataFrame([data])
+
+        # Vérifier si des colonnes spécifiques doivent être exclues
+        if {'srcip', 'dstip', 'Djit', 'Stime', 'Ltime', 'Label'}.issubset(input_data.columns):
+            input_data = input_data.drop(columns=['srcip', 'dstip', 'Djit', 'Stime', 'Ltime', 'Label'])
+
+        # Appliquer l'encodage des colonnes catégorielles
+        input_data['proto'] = label_encoder_proto.transform(input_data['proto'])
+        input_data['service'] = label_encoder_service.transform(input_data['service'])
+        input_data['state'] = label_encoder_state.transform(input_data['state'])
+        if 'attack_cat' in input_data.columns:
+            input_data['attack_cat'] = label_encoder_attack_cat.transform(input_data['attack_cat'])
+
+        # Appliquer la normalisation avec le scaler
+        input_scaled = scaler.transform(input_data)
+
+        # Prédire la classe (type d'attaque)
+        prediction = model.predict(input_scaled)[0]
+        prediction = int(prediction)  # Convertir en entier pour éviter des erreurs de type
+
+        # Afficher le résultat dans la page HTML
+        return render_template(
+            'home.html',
+            prediction_text=f"La prédiction de l'attaque est : {prediction}"
+        )
+
+    except Exception as e:
+        return render_template(
+            'home.html',
+            prediction_text=f"Erreur lors de la prédiction : {str(e)}"
+        )
 
 if __name__ == '__main__':
     app.run(debug=True)

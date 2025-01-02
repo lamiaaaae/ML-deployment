@@ -1,3 +1,148 @@
-<h1>
-  hello lamiaeeee
-</h1>
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network Traffic Prediction</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      width: 80%;
+      max-width: 1000px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: #333333;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr); /* Quatre colonnes */
+      gap: 15px;
+    }
+
+    input[type="text"], input[type="number"], input[type="datetime-local"] {
+      padding: 8px;
+      font-size: 12px;
+      border: 1px solid #cccccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    button {
+      grid-column: span 4;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .prediction {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 16px;
+      color: #333333;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Network Flow Prediction</h1>
+    <form action="{{ url_for('predict') }}" method="post">
+      <input type="text" name="srcip" placeholder="Source IP (e.g., 192.168.1.1)" required>
+      <input type="number" name="sport" placeholder="Source Port (e.g., 12345)" required>
+      <input type="text" name="dstip" placeholder="Destination IP (e.g., 192.168.1.2)" required>
+      <input type="number" name="dsport" placeholder="Destination Port (e.g., 80)" required>
+      
+      <input type="text" name="proto" placeholder="Protocol (e.g., tcp, udp)" required>
+      <input type="text" name="state" placeholder="State (e.g., FIN)" required>
+      <input type="number" name="dur" placeholder="Duration (e.g., 0.5)" step="0.01" required>
+      <input type="number" name="sbytes" placeholder="Source Bytes (e.g., 500)" required>
+      
+      <input type="number" name="dbytes" placeholder="Destination Bytes (e.g., 450)" required>
+      <input type="number" name="sttl" placeholder="Source TTL (e.g., 64)" required>
+      <input type="number" name="dttl" placeholder="Destination TTL (e.g., 64)" required>
+      <input type="number" name="sloss" placeholder="Source Loss (e.g., 0)" required>
+      
+      <input type="number" name="dloss" placeholder="Destination Loss (e.g., 0)" required>
+      <input type="text" name="service" placeholder="Service (e.g., ssl)" required>
+      <input type="number" name="Sload" placeholder="Source Load (e.g., 200.5)" step="0.1" required>
+      <input type="number" name="Dload" placeholder="Destination Load (e.g., 150.2)" step="0.1" required>
+      
+      <input type="number" name="Spkts" placeholder="Source Packets (e.g., 10)" required>
+      <input type="number" name="Dpkts" placeholder="Destination Packets (e.g., 8)" required>
+      <input type="number" name="swin" placeholder="Source Window (e.g., 12345)" required>
+      <input type="number" name="dwin" placeholder="Destination Window (e.g., 54321)" required>
+      
+      <input type="number" name="stcpb" placeholder="Source TCP Base Sequence (e.g., 12345678)" required>
+      <input type="number" name="dtcpb" placeholder="Destination TCP Base Sequence (e.g., 87654321)" required>
+      <input type="number" name="smeansz" placeholder="Source Mean Size (e.g., 50)" required>
+      <input type="number" name="dmeansz" placeholder="Destination Mean Size (e.g., 45)" required>
+      
+      <input type="number" name="trans_depth" placeholder="Transaction Depth (e.g., 5)" required>
+      <input type="number" name="res_bdy_len" placeholder="Response Body Length (e.g., 1024)" required>
+      <input type="number" name="Sjit" placeholder="Source Jitter (e.g., 0.1)" step="0.01" required>
+      <input type="number" name="Djit" placeholder="Destination Jitter (e.g., 0.2)" step="0.01" required>
+      
+      <input type="datetime-local" name="Stime" placeholder="Start Time" required>
+      <input type="datetime-local" name="Ltime" placeholder="End Time" required>
+      <input type="number" name="Sintpkt" placeholder="Source Inter-Packet Time (e.g., 0.05)" step="0.01" required>
+      <input type="number" name="Dintpkt" placeholder="Destination Inter-Packet Time (e.g., 0.06)" step="0.01" required>
+      
+      <input type="number" name="tcprtt" placeholder="TCP Round Trip Time (e.g., 0.03)" step="0.01" required>
+      <input type="number" name="synack" placeholder="SYN-ACK Time (e.g., 0.01)" step="0.01" required>
+      <input type="number" name="ackdat" placeholder="ACK-DATA Time (e.g., 0.02)" step="0.01" required>
+      <input type="number" name="is_sm_ips_ports" placeholder="Small IP/Ports (1 or 0)" required>
+      
+      <input type="number" name="ct_state_ttl" placeholder="State TTL Count (e.g., 5)" required>
+      <input type="number" name="ct_flw_http_mthd" placeholder="HTTP Methods Count (e.g., 20)" required>
+      <input type="number" name="is_ftp_login" placeholder="FTP Login (1 or 0)" required>
+      <input type="number" name="ct_ftp_cmd" placeholder="FTP Commands Count (e.g., 1)" required>
+      
+      <input type="number" name="ct_srv_src" placeholder="Service Source Count (e.g., 50)" required>
+      <input type="number" name="ct_srv_dst" placeholder="Service Destination Count (e.g., 60)" required>
+      <input type="number" name="ct_dst_ltm" placeholder="Destination Last Time (e.g., 70)" required>
+      <input type="number" name="ct_src_ltm" placeholder="Source Last Time (e.g., 80)" required>
+      
+      <input type="number" name="ct_src_dport_ltm" placeholder="Source DPort Last Time (e.g., 90)" required>
+      <input type="number" name="ct_dst_sport_ltm" placeholder="Destination SPort Last Time (e.g., 100)" required>
+      <input type="number" name="ct_dst_src_ltm" placeholder="Destination Source Last Time (e.g., 110)" required>
+      <input type="text" name="attack_cat" placeholder="Attack Category (e.g., Worms)" required>
+      
+      <input type="number" name="Label" placeholder="Label (e.g., 0)" required>
+      <button type="submit">Predict</button>
+    </form>
+    <div class="prediction">
+      {{ prediction_text }}
+    </div>
+  </div>
+</body>
+
+</html>
